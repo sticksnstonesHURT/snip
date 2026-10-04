@@ -79,3 +79,48 @@ Makefile
 - No auth. Anyone can create or delete links.
 
 Further details regarding design convention and limitations will be covered in later `.md` notes, for reference.
+
+
+----------------
+
+
+## Hardening (Phase 2)
+
+The stack is configured to behave like production, not just to run.
+
+| Control | api | db | cache | Why |
+|---|---|---|---|---|
+| Non-root user | ✅ `appuser` | ✅ drops to `postgres` | ✅ drops to `redis` | Removes the value of an escape |
+| `no-new-privileges` | ✅ | ✅ | ✅ | setuid binaries can't elevate |
+| `cap_drop: ALL` | ✅ | ❌ | ❌ | Only api needs no capabilities at all |
+| `read_only` rootfs | ✅ + tmpfs `/tmp` | ❌ | ❌ | api never writes to disk; databases must |
+| `init: true` | ✅ | – | – | tini as PID 1 forwards signals, reaps zombies |
+| Memory / CPU limits | 256M / 1.0 | 256M / 1.0 | 256M / 1.0 | A container can't consume host RAM unbounded |
+| Log rotation | 10m × 3 | 10m × 3 | 10m × 3 | Caps log growth at ~30MB per container |
+
+### Why db and cache aren't `cap_drop: ALL`
+
+The official Postgres and Redis images start as root, `chown` their data directories, then
+drop to their service user — requiring `CAP_CHOWN`, `CAP_FOWNER`, `CAP_SETUID`, `CAP_SETGID`.
+Dropping all capabilities makes them exit at startup (`exited 127`).
+
+They reach the same end state anyway — non-root, no effective capabilities — because their
+entrypoints do it themselves:
+
+| | CapBnd (ceiling) | CapEff (running) | User |
+|---|---|---|---|
+| api | `0x0` | `0x0` | appuser |
+| db  | `0xa80425fb` | `0x0` | postgres |
+
+### Verifying
+
+```bash
+docker inspect snip-api-1 --format 'readonly={{.HostConfig.ReadonlyRootfs}} init={{.HostConfig.Init}} caps={{.HostConfig.CapDrop}}'
+
+# writes must fail — EROFS on a read-only mount, EACCES where mode bits deny first
+docker compose exec api sh -c 'touch /home/appuser/x'   # EROFS
+docker compose exec api sh -c 'touch /tmp/x'            # ok (tmpfs)
+
+# capabilities from the kernel, not from Docker
+docker compose exec api cat /proc/1/status | grep -E '^Cap'
+```

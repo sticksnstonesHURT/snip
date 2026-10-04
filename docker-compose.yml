@@ -12,6 +12,25 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    init: true
+    stop_grace_period: 10s
 
   db:
     image: postgres:16-alpine
@@ -26,6 +45,18 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
 
   cache:
     image: redis:7-alpine
@@ -34,6 +65,18 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   pgdata:
