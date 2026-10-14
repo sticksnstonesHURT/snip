@@ -19,4 +19,5 @@ class LinkOut(BaseModel):
 class LinkStats(BaseModel):
     code: str
     clicks: int
+    pending_clicks:int
     recent_clicks: list[datetime]

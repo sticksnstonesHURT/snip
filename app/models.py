@@ -26,6 +26,7 @@ class ClickEvent(Base):
     __tablename__ = "click_events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    event_id: Mapped[str | None] = mapped_column(String(36), unique=True, index=True)
     link_id: Mapped[int] = mapped_column(
         ForeignKey("links.id", ondelete="CASCADE"), index=True
     )
@@ -34,3 +35,17 @@ class ClickEvent(Base):
     )
 
     link: Mapped["Link"] = relationship(back_populates="events")
+
+
+class ApiKey(Base):
+    __tablename__ = "api_keys"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    last_used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
