@@ -128,7 +128,7 @@ curl -i localhost:8000/aB3xK9z
 **The key cannot be recovered; only its sha256 hash is stored.**
 A new key must be generated if lost.
 
-
+<br>
 
 ### Configuration
 
@@ -162,6 +162,7 @@ A new key must be generated if lost.
 <br>
 Writes require auth. Reads and redirects are open.
 
+<br>
 
 ### Error codes: 
 - `401` missing/invalid key
@@ -185,15 +186,15 @@ Keys are `snip_` + 32 random bytes (`secrets.token_urlsafe(32)`).
 make key n="laptop"
 ```
 
-Key creation runs a one-off container invoking `python -m app.createkey`. 
+- Key creation runs a one-off container invoking `python -m app.createkey`. 
 
-There is deliberately **no HTTP endpoint** for minting keys: it would have to be either unauthenticated (anyone can mint keys) or authenticated (need a key to get a key). 
+- There is deliberately **no HTTP endpoint** for minting keys: it would have to be either unauthenticated (anyone can mint keys) or authenticated (need a key to get a key). 
 
-Requiring shell access to the host is the correct trust boundary.
+- Requiring shell access to the host is the correct trust boundary.
 
-Why plain sha256 and not bcrypt: password hashing exists to make *guessing* expensive against low-entropy inputs. 
+- Why plain sha256 and not bcrypt: password hashing exists to make *guessing* expensive against low-entropy inputs. 
 
-A 256-bit random string isn't guessable at any speed, so a fast one-way hash is the right tool.
+- A 256-bit random string isn't guessable at any speed, so a fast one-way hash is the right tool.
 
 
 -------
@@ -467,6 +468,8 @@ make nuke       # stop AND delete volumes — destroys all data
 - `down` keeps everything. Links, click events, API keys, and the Redis queue all survive in the `snip_pgdata` and `snip_redisdata` named volumes. `make up` brings it all back exactly as it was.
 - `nuke` is destructive and irreversible. It removes both volumes, permanently deleting links, click events, stored API-key hashes, and any other persisted database or Redis data. Any existing API keys will no longer authenticate.
 
+
+<br>
 
 
 To also remove the built images:
