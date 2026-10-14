@@ -14,7 +14,7 @@ help:
 	@echo "db-shell    psql inside postgres"
 	@echo "cache-shell redis-cli inside redis"
 	@echo "health      hit the /health endpoint"
-	@echo "smoke       create a link and list them"
+	@echo "smoke       create + list a link (prompts for API key)"
 	@echo "migrate     apply alembic migrations"
 	@echo "migration   generate a migration (make migration m=\"msg\")"
 	@echo "check       verify models vs DB migrations"
@@ -54,13 +54,18 @@ health:
 	@curl -s http://localhost:8000/health ; echo
 
 smoke:
-	@echo "→ POST /links (auth required)"
-	@curl -s -X POST http://localhost:8000/links \
-		-H 'Content-Type: application/json' \
-		-H "X-API-Key: $${SNIP_API_KEY:?set SNIP_API_KEY first}" \
-		-d '{"url":"https://example.com"}' ; echo
-	@echo "→ GET /links"
-	@curl -s http://localhost:8000/links ; echo
+	@bash -c '\
+		read -rsp "API key: " KEY; echo; \
+		test -n "$$KEY" || { echo "ERROR: API key required"; exit 1; }; \
+		echo "→ POST /links"; \
+		curl -sS -f -X POST http://localhost:8000/links \
+			-H "Content-Type: application/json" \
+			-H "X-API-Key: $$KEY" \
+			-d "{\"url\":\"https://example.com\"}" || exit 1; \
+		echo; \
+		echo "→ GET /links"; \
+		curl -sS -f http://localhost:8000/links || exit 1; \
+		echo'
 
 migrate:
 	$(COMPOSE) run --rm api alembic upgrade head
