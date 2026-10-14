@@ -94,10 +94,10 @@ This ensures that migrations run with the same application code, dependencies, a
 
 ### 3.2 Architecture diagram
 
-
+```mermaid
 flowchart TB
     Client["HTTP Client"]
-
+ 
     subgraph Compose["Docker Compose"]
         API["FastAPI API"]
         Migration["Migration Service"]
@@ -117,7 +117,7 @@ flowchart TB
     Migration -->|"Apply schema revisions"| DB
     DB -->|"Healthy"| Migration
     Migration -->|"Successful exit required"| API
-
+```
 
 The diagram represents the logical responsibilities and data flows. 
 
