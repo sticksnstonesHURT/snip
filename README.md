@@ -30,25 +30,24 @@ FastAPI + Postgres + Redis, fully containerized with Docker Compose.
 
 ```mermaid
 flowchart TD
-    C[Client] -->|HTTP requests| API[FastAPI]
-    API -->|Links and API keys| DB[(PostgreSQL)]
-    API -->|Cache lookups and rate limits| R[(Redis)]
-    API -->|Queue click events| Q[Redis Click Queue]
-    Q --> F[Background Flusher]
-    F -->|Persist click events| DB
+    C[Client] -->|HTTP| API[FastAPI]
+    API <-->|links · events · keys| DB[(PostgreSQL)]
+    API <-->|cache · rate limits · click queue| R[(Redis)]
+    API -.->|background thread| F[Click Flusher]
+    F <-->|drain queue · trim after commit| R
+    F -->|persist click events| DB
 ```
-
 
 -----
 
 ## Prerequisites
 
-- **Docker Engine** 20.10+ — install guide: https://docs.docker.com/get-docker/
+- **Docker Engine** 20.10+ : Install guide https://docs.docker.com/get-docker/
 
-- **Docker Compose v2** — the `docker compose` plugin, *not* the legacy `docker-compose` binary.
+- **Docker Compose v2** : the `docker compose` plugin, **not** the legacy `docker-compose` binary.
   Verify with `docker compose version`.
 
-- **make** — every command below uses it. `sudo apt install make` (Debian/Ubuntu).
+- **make** :  every command below uses it. `sudo apt install make` (Debian/Ubuntu).
 
 - **Port 8000 free** on the host.
 
